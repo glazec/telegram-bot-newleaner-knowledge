@@ -55,10 +55,15 @@ const query = () => async (ctx: Context) => {
     try {
       const response = await search(message.text);
       for (let i = 0; i < response.matches.length; i++) {
+        var searchResult = response.matches[i].text;
+        // not sure if need to escape =_
+        searchResult = searchResult.replace(/[*~]/g, '\\$&');
+
+        debug(searchResult);
         await ctx.replyWithMarkdownV2(
           `=========结果 ${i + 1} 相关性 ${
             response.matches[i].score
-          }=========\n` + response.matches[i].text,
+          }=========\n` + searchResult,
           {
             parse_mode: 'Markdown',
             // reply_to_message_id: msg.message_id,
