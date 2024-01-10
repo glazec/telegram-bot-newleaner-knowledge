@@ -1,8 +1,7 @@
-import { Context } from 'telegraf';
 import createDebug from 'debug';
-import * as constants from '../constants';
 import * as Sentry from '@sentry/node';
 import * as amplitude from '@amplitude/analytics-node';
+import { createClient } from '@supabase/supabase-js';
 
 const debug = createDebug('bot:review_callback');
 
@@ -34,9 +33,10 @@ const callbackRouter = () => async (ctx: any) => {
     relevant_score: parseFloat(parts[2]),
   };
   debug(review_data);
-  const { data, error } = await constants.supabase
-    .from('review')
-    .insert(review_data);
+  const SUPABASE_URL = process.env.SUPABASE_URL || '';
+  const SUPABASE_KEY = process.env.SUPABASE_KEY || '';
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+  const { data, error } = await supabase.from('review').insert(review_data);
   if (error) {
     console.error(error);
     Sentry.setContext('review_data', review_data);
