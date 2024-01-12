@@ -13,6 +13,8 @@ const replyToMessage = (ctx: Context, messageId: number, string: string) =>
   });
 
 const query = () => async (ctx: Context) => {
+  // recored execution time
+  const start = Date.now();
   debug('Triggered "query text command');
 
   const messageId = ctx.message?.message_id;
@@ -54,16 +56,18 @@ const query = () => async (ctx: Context) => {
     await ctx.telegram.sendChatAction(ctx.chat.id, 'typing');
     try {
       const response = await search(message.text);
+      var searchSummary = '';
       for (let i = 0; i < response.matches.length; i++) {
         var searchResult = response.matches[i].text;
         // not sure if need to escape =
-        searchResult = searchResult.replace(/[*~_]/g, '\\$&');
+        searchResult = searchResult.replace(/[()*~_.]/g, '\\$&');
+        searchSummary += `${i + 1}.(${response.matches[i].score})${
+          searchResult.split('\n')[2]
+        } \n`;
 
         debug(searchResult);
         await ctx.replyWithMarkdownV2(
-          `=========结果 ${i + 1} 相关性 ${
-            response.matches[i].score
-          }=========\n` + searchResult,
+          `=========结果 ${i + 1}=========\n` + searchResult,
           {
             parse_mode: 'Markdown',
             // reply_to_message_id: msg.message_id,
@@ -95,6 +99,11 @@ const query = () => async (ctx: Context) => {
         await new Promise((resolve) => setTimeout(resolve, 1000));
         // add action button to the message
       }
+      const stop = Date.now();
+      searchSummary =
+        `搜索在  ${(stop - start) / 1000}s 内完成。\n\n` + searchSummary;
+      searchSummary = searchSummary.replace(/[()*~_.]/g, '\\$&');
+      await ctx.replyWithMarkdownV2(searchSummary);
     } catch (error) {
       console.error(`Error: ${error}`);
       await Sentry.captureException(error);
