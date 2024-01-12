@@ -56,8 +56,8 @@ const query = () => async (ctx: Context) => {
       const response = await search(message.text);
       for (let i = 0; i < response.matches.length; i++) {
         var searchResult = response.matches[i].text;
-        // not sure if need to escape =_
-        searchResult = searchResult.replace(/[*~]/g, '\\$&');
+        // not sure if need to escape =
+        searchResult = searchResult.replace(/[*~_]/g, '\\$&');
 
         debug(searchResult);
         await ctx.replyWithMarkdownV2(
@@ -97,11 +97,11 @@ const query = () => async (ctx: Context) => {
       }
     } catch (error) {
       console.error(`Error: ${error}`);
-      Sentry.captureException(error);
+      await Sentry.captureException(error);
       await replyToMessage(
         ctx,
         messageId as number,
-        '反馈开发者 @glazecl \nchatid: ' + messageId,
+        '查询出现错误。反馈开发者 @glazecl',
       );
     }
   }

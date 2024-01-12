@@ -40,7 +40,7 @@ const callbackRouter = () => async (ctx: any) => {
   if (error) {
     console.error(error);
     Sentry.setContext('review_data', review_data);
-    Sentry.captureException(error);
+    await Sentry.captureException(error);
   }
 
   ctx.answerCbQuery('我们已收到您的反馈，感谢您的支持！');
